@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eConverge - Procurement POC (Working Comments)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* --- Styles (Complete CSS from previous versions - no changes needed here) --- */
+        /* Global Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { display: flex; height: 100vh; overflow: hidden; background-color: #f5f5f5; }
+
+        /* Left Navigation Panel */
+        .left-nav { width: 260px; background-color: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow-y: auto; }
+        .logo { padding: 15px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; }
+        .logo img { height: 30px; background-color: #eee; padding: 5px; border-radius: 3px; } /* Placeholder style */
+        .search-box { padding: 10px 15px; border-bottom: 1px solid #e0e0e0; }
+        .search-box input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        .nav-tree { flex: 1; padding: 10px 0; overflow-y: auto; }
+        .nav-item { padding: 8px 15px 8px 20px; display: flex; align-items: center; cursor: pointer; transition: background-color 0.2s; font-size: 14px; }
+        .nav-item:hover { background-color: #f0f0f0; }
+        .nav-item.active { background-color: #e9f5ff; color: #2c7be5; border-left: 3px solid #2c7be5; padding-left: 17px; }
+        .nav-item.procurement { font-weight: 500; }
+        .nav-item i.fa-solid { margin-right: 10px; font-size: 16px; width: 18px; text-align: center; }
+        .nav-item .chevron { margin-left: auto; font-size: 12px; }
+        .nav-child { padding-left: 15px; }
+
+        /* Custom checkboxes */
+        .custom-checkbox { display: inline-block; width: 16px; height: 16px; background-color: white; border: 1px solid #ccc; border-radius: 3px; position: relative; margin-right: 10px; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
+        .custom-checkbox.checked::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; font-size: 11px; top: 1px; left: 2px; color: #2c7be5; }
+
+        /* Main Workspace */
+        .main-workspace { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .workspace-header { padding: 15px 20px; background-color: #fff; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; }
+        .breadcrumb { display: flex; align-items: center; font-size: 14px; }
+        .breadcrumb a { text-decoration: none; color: #2c7be5; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb span { margin: 0 5px; color: #777; }
+        .user-controls { display: flex; align-items: center; }
+        .user-controls .btn { margin-left: 10px; }
+        .workspace-content { flex: 1; padding: 20px; overflow-y: auto; background-color: #f9f9f9; }
+
+        /* Right Toolbelt */
+        .right-toolbelt { width: 300px; background-color: #fff; border-left: 1px solid #e0e0e0; padding: 20px 15px; overflow-y: auto; }
+        .tool-section { margin-bottom: 25px; }
+        .tool-section h3 { font-size: 16px; margin-bottom: 10px; color: #444; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .toolbelt-info-item { margin-bottom: 8px; font-size: 14px; }
+        .toolbelt-info-item strong { color: #555; margin-right: 5px; }
+        .toolbelt-comment { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
+        .toolbelt-comment:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .toolbelt-comment-meta { font-weight: 500; margin-bottom: 3px; font-size: 13px; }
+        .toolbelt-comment-time { font-size: 11px; color: #888; margin-bottom: 5px; }
+        .toolbelt-comment-text { font-size: 13px; line-height: 1.4; }
+
+        /* Common Components */
+        .btn { padding: 8px 15px; background-color: #2c7be5; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+        .btn:hover { background-color: #1a68d1; }
+        .btn:disabled { background-color: #adb5bd; cursor: not-allowed; opacity: 0.7; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover:not(:disabled) { background-color: #5a6268; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-danger:hover:not(:disabled) { background-color: #c82333; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn-outline-primary { color: #2c7be5; border: 1px solid #2c7be5; background-color: transparent; }
+        .btn-outline-primary:hover:not(:disabled) { color: white; background-color: #2c7be5; }
+        .btn-outline-danger { color: #dc3545; border: 1px solid #dc3545; background-color: transparent; }
+        .btn-outline-danger:hover:not(:disabled) { color: white; background-color: #dc3545; }
+        .card { background-color: #fff; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
+        .card-header { padding: 15px 20px; border-bottom: 1px solid #eee; font-weight: 500; display: flex; align-items: center; justify-content: space-between; background-color: #fdfdfd; }
+        .card-content { padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; }
+        .form-control { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        select.form-control { height: 36px; }
+        .form-text { font-size: 12px; color: #888; margin-top: 5px; }
+        .list-group { list-style: none; padding: 0; margin: 0; }
+        .list-group-item { padding: 10px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .list-group-item:last-child { border-bottom: none; }
+        .upload-area { border: 1px dashed #ccc; padding: 20px; text-align: center; border-radius: 4px; background-color: #fafafa; cursor: pointer; }
+        .upload-area:hover { background-color: #f5f5f5; }
+        .upload-area i { font-size: 24px; color: #999; margin-bottom: 10px; }
+
+        /* Procurement Dashboard Specific */
+        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background-color: #fff; padding: 15px; border-radius: 6px; box-shadow: 0 1px 5px rgba(0,0,0,0.05); }
+        .stat-card h3 { font-size: 13px; color: #666; margin-bottom: 8px; }
+        .stat-card .value { font-size: 22px; font-weight: 600; color: #333; }
+        .procurement-list { width: 100%; border-collapse: collapse; }
+        .procurement-list th, .procurement-list td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        .procurement-list th { font-weight: 600; color: #555; font-size: 12px; background-color: #f9f9f9; text-transform: uppercase; letter-spacing: 0.5px; }
+        .procurement-list tr:hover { background-color: #f0f8ff; cursor: pointer; }
+        .status-indicator { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+        .status-rfp { background-color: #e1f5fe; color: #0288d1; }
+        .status-response { background-color: #fff8e1; color: #ffa000; }
+        .status-review { background-color: #e8f5e9; color: #388e3c; }
+        .status-awarded { background-color: #f3e5f5; color: #8e24aa; }
+        .status-initiation { background-color: #e0e0e0; color: #666; }
+        .status-completed { background-color: #dcedc8; color: #558b2f; }
+        .ball-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; background-color: #f0f0f0; color: #333; white-space: nowrap; }
+        .ball-owner { background-color: #e8f5e9; color: #388e3c; }
+        .ball-contractor { background-color: #fff8e1; color: #ffa000; }
+
+        /* Journey View Specific */
+        .journey-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
+        .journey-title { font-size: 22px; font-weight: 600; }
+        .journey-phases { display: flex; margin-bottom: 30px; position: relative; background-color: #fff; padding: 15px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        .journey-phases::before { content: ''; position: absolute; top: 27px; left: 12px; right: 12px; height: 3px; background-color: #e0e0e0; z-index: 0; }
+        .phase { flex: 1; text-align: center; position: relative; z-index: 1; padding: 0 5px; }
+        .phase-dot { width: 25px; height: 25px; background-color: #e0e0e0; border-radius: 50%; margin: 0 auto 10px; border: 3px solid #fff; position: relative; transition: background-color 0.3s; }
+        .phase-label { font-size: 12px; color: #666; max-width: 100px; margin: 0 auto; line-height: 1.3; }
+        .phase.active .phase-dot { background-color: #2c7be5; }
+        .phase.completed .phase-dot { background-color: #28a745; }
+        .phase.active .phase-label { color: #2c7be5; font-weight: 600; }
+        .phase.completed .phase-label { color: #28a745; font-weight: 500; }
+        .phase.completed .phase-dot::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: white; font-size: 12px; line-height: 19px; display: block; text-align: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .journey-sections { display: flex; flex-wrap: wrap; gap: 20px; }
+        .journey-column { flex: 1; min-width: 300px; }
+        .document-card { padding: 12px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 10px; display: flex; align-items: center; background-color: white; transition: transform 0.2s, box-shadow 0.2s; }
+        .document-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .document-icon { width: 35px; height: 35px; background-color: #f1f8ff; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 18px; color: #2c7be5; flex-shrink: 0; }
+        .document-info { flex: 1; min-width: 0; }
+        .document-title { font-weight: 500; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+        .document-meta { font-size: 11px; color: #888; }
+        .document-actions { margin-left: 10px; display: flex; gap: 8px; }
+        .document-actions i { color: #999; cursor: pointer; font-size: 14px; }
+        .document-actions i:hover { color: #333; }
+        .activity-timeline { padding: 0 10px 10px 10px; max-height: 400px; overflow-y: auto; }
+        .timeline-item { position: relative; padding-left: 25px; padding-bottom: 15px; }
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-item::before { content: ''; position: absolute; left: 4px; top: 5px; bottom: -5px; width: 2px; background-color: #e0e0e0; }
+        .timeline-item:last-child::before { display: none; }
+        .timeline-dot { width: 10px; height: 10px; background-color: #2c7be5; border-radius: 50%; position: absolute; left: 0px; top: 5px; }
+        .timeline-content { /* Removed background for cleaner look */ }
+        .timeline-time { font-size: 11px; color: #888; margin-bottom: 3px; }
+        .timeline-text { font-size: 13px; line-height: 1.4; }
+        .immutable-indicator { display: inline-flex; align-items: center; font-size: 11px; color: #888; margin-left: 10px; background-color: #f0f0f0; padding: 2px 6px; border-radius: 10px; }
+        .immutable-indicator i { margin-right: 4px; font-size: 12px; }
+        .task-list { border: 1px solid #eee; border-radius: 4px; margin-bottom: 15px; background-color: white; }
+        .task-list-header { padding: 12px 15px; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #eee; font-size: 14px; color: #444; }
+        .task-item-container { padding: 12px 15px; border-bottom: 1px solid #eee; background-color: white; font-size: 13px; }
+        .task-item-container:last-child { border-bottom: none; }
+        .task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .task-title { font-weight: 600; margin-bottom: 3px; font-size: 14px; } /* For checklist title */
+        .task-description { font-weight: 500; } /* For single task description */
+        .task-meta-info { font-size: 11px; color: #888; }
+        .checklist-items-display { list-style: none; padding-left: 5px; margin-top: 8px; }
+        .checklist-items-display li { display: flex; align-items: center; margin-bottom: 5px; font-size: 13px; }
+        .view-toggle { display: flex; background-color: #f0f0f0; border-radius: 4px; overflow: hidden; border: 1px solid #ddd; }
+        .view-toggle-btn { flex: 1; padding: 6px 10px; text-align: center; cursor: pointer; font-size: 13px; border: none; background: none; color: #555; }
+        .view-toggle-btn.active { background-color: #2c7be5; color: white; font-weight: 500; }
+        .participant-role { font-size: 12px; color: #666; margin-left: 5px; font-style: italic; }
+        .modal-list-item { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .modal-list-item:last-child { border-bottom: none; }
+
+        /* Modal Dialog */
+        .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; display: none; padding: 20px; }
+        .modal { background-color: white; border-radius: 6px; width: 100%; max-width: 650px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; line-height: 1; }
+        .modal-body { padding: 20px; overflow-y: auto; flex-grow: 1; }
+        .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background-color: #f9f9f9; flex-shrink: 0; }
+        .modal-footer .btn { margin-left: 10px; }
+        .modal-section { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee; }
+        .modal-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .modal-section label { font-weight: 600; color: #555; margin-bottom: 10px; display: block; }
+        .radio-group label { font-weight: normal; margin-right: 15px; display: inline-flex; align-items: center; font-size: 14px; }
+        .radio-group input[type="radio"] { margin-right: 5px; }
+        .checklist-item-input-group { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+        .checklist-item-input-group input { flex-grow: 1; }
+
+        /* Hide views initially */
+        #dashboard-view, #journey-view, #contractor-view { display: none; }
+        #dashboard-view.active, #journey-view.active, #contractor-view.active { display: block; }
+        #task-fields, #checklist-fields { display: none; } /* Hide specific modal fields initially */
+        #checklist-fields.active, #task-fields.active { display: block; }
+    </style>
+</head>
+<body>
+    <!-- Left Nav -->
+    <div class="left-nav">
+        <div class="logo">
+            <i class="fa-solid fa-network-wired fa-2x" style="color: #2c7be5; margin-right: 8px;"></i>
+            <span style="font-weight: 600; font-size: 18px;">eConverge</span>
+        </div>
+        <div class="search-box">
+            <input type="text" placeholder="Search...">
+        </div>
+        <div class="nav-tree">
+            <div class="nav-item procurement" id="procurement-nav">
+                <i class="fa-solid fa-briefcase"></i> Procurement
+            </div>
+            <div class="nav-item nav-child" id="dashboard-nav-item">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard View
+            </div>
+            <div class="nav-item nav-child" id="contractor-nav-item">
+                <i class="fa-solid fa-user-hard-hat"></i> Contractor View
+            </div>
+            <hr style="margin: 10px 15px; border: 0; border-top: 1px solid #eee;">
+            <div class="nav-item">
+                <i class="fa-solid fa-sitemap"></i> Organization
+                <i class="fa-solid fa-chevron-right chevron"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="main-workspace">
+        <div class="workspace-header">
+            <div class="breadcrumb">
+                <a href="#" id="breadcrumb-home">Home</a>
+                <span>/</span>
+                <a href="#" id="breadcrumb-procurement">Procurement</a>
+                <span id="breadcrumb-divider" style="display: none;">/</span>
+                <span id="breadcrumb-journey" style="display: none;">Journey Name</span>
+            </div>
+            <div class="user-controls">
+                <div id="journey-controls-header" style="display: none; gap: 10px;">
+                    <button class="btn btn-sm btn-outline-primary" id="edit-phases-btn" title="Edit Journey Phases">
+                        <i class="fa-solid fa-pencil"></i> Phases
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" id="manage-participants-btn" title="Manage Participants">
+                        <i class="fa-solid fa-users-cog"></i> Participants
+                    </button>
+                    <button class="btn btn-sm" id="advance-phase-btn" title="Advance to Next Phase">
+                        <i class="fa-solid fa-forward-step"></i> Advance Phase
+                    </button>
+                </div>
+                <button class="btn" id="show-create-modal" style="margin-left: 10px;">
+                    <i class="fa-solid fa-plus"></i> New Journey
+                </button>
+            </div>
+        </div>
+        <div class="workspace-content">
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="active">
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <h3>Active Journeys</h3>
+                        <div class="value" id="stat-active">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending Responses</h3>
+                        <div class="value" id="stat-pending">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Awarded (NTP)</h3>
+                        <div class="value" id="stat-awarded">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Ball In Your Court</h3>
+                        <div class="value" id="stat-bic-owner">0</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span>Active Procurement Journeys (Owner View)</span>
+                        <button class="btn btn-sm btn-secondary" id="switch-to-contractor-view">
+                            <i class="fa-solid fa-user-hard-hat"></i> Switch to Contractor View
+                        </button>
+                    </div>
+                    <div class="card-content" style="padding: 0;">
+                        <table class="procurement-list">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Current Phase</th>
+                                    <th>Ball In Court</th>
+                                    <th>Next Deadline</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="owner-dashboard-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Contractor View -->
+            <div id="contractor-view">
+                <div class="procurement-invite">
+                    <h3><i class="fa-solid fa-envelope-open-text"></i> Your Procurement Invitations</h3>
+                    <p>Respond to RFPs, submit proposals, and track the progress of your bids.</p>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span>Your Active Bids & Contracts</span>
+                        <button class="btn btn-sm btn-secondary" id="switch-to-owner-view">
+                            <i class="fa-solid fa-user-tie"></i> Switch to Owner View
+                        </button>
+                    </div>
+                    <div class="card-content" style="padding:0;">
+                        <table class="procurement-list">
+                            <thead>
+                                <tr>
+                                    <th>Project Name</th>
+                                    <th>Owner</th>
+                                    <th>Action Required By You</th>
+                                    <th>Deadline</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contractor-dashboard-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Journey View -->
+            <div id="journey-view">
+                <div class="journey-header">
+                    <h1 id="journey-title-display" class="journey-title">Procurement Journey Title</h1>
+                </div>
+                <div id="journey-phases-display" class="journey-phases"></div>
+                <div class="journey-sections">
+                    <div class="journey-column">
+                        <div class="card">
+                            <div class="card-header">
+                                Documents (Immutable Record)
+                                <button class="btn btn-sm btn-outline-primary" id="upload-doc-journey">
+                                    <i class="fa-solid fa-upload"></i> Upload
+                                </button>
+                            </div>
+                            <div class="card-content" id="documents-list"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">Participants</div>
+                            <div class="card-content" id="participants-list"></div>
+                        </div>
+                    </div>
+                    <div class="journey-column">
+                        <div class="card">
+                            <div class="card-header">
+                                Task Status
+                                <span id="journey-ball-in-court" class="ball-badge">Ball In Court: ?</span>
+                            </div>
+                            <div class="card-content">
+                                <div class="task-list" id="task-list-container">
+                                    <div class="task-list-header">Active Tasks / Checklists</div>
+                                </div>
+                                <button class="btn btn-secondary" style="width: 100%; margin-top: 15px;" id="add-task-journey">
+                                    <i class="fa-solid fa-plus"></i> Add Task/Checklist Item
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">Timeline & Activity Log</div>
+                            <div class="card-content" style="padding-top: 10px;">
+                                <div class="activity-timeline" id="activity-log"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right Toolbelt -->
+    <div class="right-toolbelt">
+        <div class="tool-section">
+            <h3>Quick Actions</h3>
+            <!-- Buttons are never disabled now; logic is done in JS -->
+            <button class="btn" style="width: 100%; margin-bottom: 10px;" id="toolbelt-upload-doc">
+                <i class="fa-solid fa-upload"></i> Upload Document
+            </button>
+            <button class="btn btn-secondary" style="width: 100%; margin-bottom: 10px;" id="toolbelt-add-task">
+                <i class="fa-solid fa-tasks"></i> Add Task / Checklist
+            </button>
+            <button class="btn btn-secondary" style="width: 100%;" id="toolbelt-add-comment">
+                <i class="fa-solid fa-comment-dots"></i> Add Comment
+            </button>
+        </div>
+        <div id="toolbelt-journey-info" class="tool-section" style="display: none;">
+            <h3>Journey Info</h3>
+            <div class="card" style="box-shadow: none; border: 1px solid #eee;">
+                <div class="card-content" style="padding: 15px;">
+                    <div class="toolbelt-info-item"><strong>Project:</strong> <span id="tb-journey-name">N/A</span></div>
+                    <div class="toolbelt-info-item"><strong>Phase:</strong> <span id="tb-journey-phase">N/A</span></div>
+                    <div class="toolbelt-info-item"><strong>Ball In Court:</strong>
+                        <span id="tb-journey-bic" class="ball-badge">?</span>
+                    </div>
+                    <div class="toolbelt-info-item"><strong>Next Deadline:</strong> <span id="tb-journey-deadline">N/A</span></div>
+                </div>
+            </div>
+        </div>
+        <div id="toolbelt-comments" class="tool-section" style="display: none;">
+            <h3>Comments / Activity</h3>
+            <div class="card" style="box-shadow: none; border: 1px solid #eee;">
+                <div class="card-content" style="padding: 15px; max-height: 400px; overflow-y: auto;" id="tb-comments-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- Create New Procurement Journey Modal -->
+    <div class="modal-backdrop" id="create-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Create New Procurement Journey</div>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <label>Basic Information</label>
+                    <div class="form-group">
+                        <label for="procurement-name-modal">Journey Name</label>
+                        <input type="text" class="form-control" id="procurement-name-modal" placeholder="e.g., Office Renovation Project">
+                    </div>
+                    <div class="form-group">
+                        <label for="procurement-type-modal">Procurement Type</label>
+                        <select class="form-control" id="procurement-type-modal">
+                            <option value="joc">JOC Contract</option>
+                            <option value="saber">SABER/IDIQ</option>
+                            <option value="mac">MAC Contract</option>
+                            <option value="general">General Contract</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="procurement-desc-modal">Description</label>
+                        <textarea class="form-control" id="procurement-desc-modal" rows="2" placeholder="Brief description"></textarea>
+                    </div>
+                </div>
+                <div class="modal-section">
+                    <label>Initial Participants</label>
+                    <ul class="list-group" id="modal-initial-participants-list" style="margin-bottom: 15px;"></ul>
+                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                            <label for="initial-participant-name" style="font-weight: normal; font-size: 13px;">Name</label>
+                            <input type="text" class="form-control form-control-sm" id="initial-participant-name" placeholder="Participant Name/Company">
+                        </div>
+                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                            <label for="initial-participant-role" style="font-weight: normal; font-size: 13px;">Role</label>
+                            <select class="form-control form-control-sm" id="initial-participant-role">
+                                <option value="Contractor">Contractor</option>
+                                <option value="Reviewer">Reviewer</option>
+                                <option value="Stakeholder">Stakeholder</option>
+                                <option value="Owner">Owner</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-sm btn-secondary" id="add-initial-participant-btn" type="button">
+                            <i class="fa-solid fa-plus"></i> Add
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-section">
+                    <label>Initial Documents (Optional)</label>
+                    <div class="upload-area" id="initial-doc-upload-area">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <div>Drag & drop files here, or click to browse</div>
+                        <div style="font-size: 12px; color: #888; margin-top: 5px;">PDF, DOC, XLS, JPG, ZIP</div>
+                    </div>
+                    <ul id="initial-doc-list" style="font-size: 13px; margin-top: 10px; list-style: none;"></ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn" id="confirm-create">Create Journey</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Phases Modal -->
+    <div class="modal-backdrop" id="edit-phases-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Edit Journey Phases</div>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <label>Current Phases (Order Matters)</label>
+                <ul class="list-group" id="modal-phases-list" style="margin-bottom: 15px;"></ul>
+                <div class="form-group">
+                    <label for="new-phase-name">Add New Phase</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" class="form-control" id="new-phase-name" placeholder="Enter phase name">
+                        <button class="btn btn-sm btn-secondary" id="add-new-phase-btn">
+                            <i class="fa-solid fa-plus"></i> Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn" id="save-phases-btn">Save Phases</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Participants Modal -->
+    <div class="modal-backdrop" id="manage-participants-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Manage Participants</div>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <label>Current Participants</label>
+                <ul class="list-group" id="modal-participants-list" style="margin-bottom: 15px;"></ul>
+                <div class="form-group">
+                    <label>Add New Participant</label>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <input type="text" class="form-control" id="new-participant-name" placeholder="Participant Name or Company">
+                        <select class="form-control" id="new-participant-role">
+                            <option value="Owner">Owner Role</option>
+                            <option value="Contractor">Contractor Role</option>
+                            <option value="Reviewer">Reviewer Role</option>
+                            <option value="Stakeholder">Stakeholder</option>
+                        </select>
+                        <button class="btn btn-sm btn-secondary" id="add-new-participant-btn" style="align-self: flex-end;">
+                            <i class="fa-solid fa-plus"></i> Add Participant
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task / Checklist Modal -->
+    <div class="modal-backdrop" id="add-task-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add New Task / Checklist</div>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group radio-group">
+                    <label style="margin-bottom: 10px; font-weight: 600;">Type:</label>
+                    <label><input type="radio" name="task-type" value="task" checked> Single Task</label>
+                    <label><input type="radio" name="task-type" value="checklist"> Checklist</label>
+                </div>
+                <div id="task-fields" class="active">
+                    <div class="form-group">
+                        <label for="task-description">Task Description</label>
+                        <input type="text" class="form-control" id="task-description" placeholder="e.g., Submit Cost Proposal">
+                    </div>
+                </div>
+                <div id="checklist-fields">
+                    <div class="form-group">
+                        <label for="checklist-title">Checklist Title</label>
+                        <input type="text" class="form-control" id="checklist-title" placeholder="e.g., Contractor Pre-Submission Checklist">
+                    </div>
+                    <div class="form-group">
+                        <label>Checklist Items</label>
+                        <div id="checklist-items-container">
+                            <div class="checklist-item-input-group">
+                                <input type="text" class="form-control form-control-sm checklist-item-input" placeholder="Checklist item 1">
+                                <button class="btn btn-sm btn-outline-danger remove-checklist-item-btn" type="button" disabled>
+                                    <i class="fa-solid fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-secondary" id="add-checklist-item-modal-btn" type="button" style="margin-top: 10px;">
+                            <i class="fa-solid fa-plus"></i> Add Item
+                        </button>
+                    </div>
+                </div>
+                <hr style="margin: 20px 0;">
+                <div class="form-group">
+                    <label for="task-assignee">Assign To (Role)</label>
+                    <select class="form-control" id="task-assignee">
+                        <option value="Contractor">Contractor</option>
+                        <option value="Owner">Owner</option>
+                        <option value="Reviewer">Reviewer</option>
+                        <option value="All">All Participants</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="task-due-date">Due Date (Optional)</label>
+                    <input type="date" class="form-control" id="task-due-date">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn" id="save-task-btn">Add Item</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Comment Modal (NEW) -->
+    <div class="modal-backdrop" id="add-comment-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add Comment</div>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="comment-textarea">Comment:</label>
+                    <textarea id="comment-textarea" class="form-control" rows="3" placeholder="Write your comment here..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn" id="save-comment-btn">Add Comment</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- DOM Elements ---
+            const procurementNav = document.getElementById('procurement-nav');
+            const dashboardNavItem = document.getElementById('dashboard-nav-item');
+            const contractorNavItem = document.getElementById('contractor-nav-item');
+            const dashboardView = document.getElementById('dashboard-view');
+            const journeyView = document.getElementById('journey-view');
+            const contractorView = document.getElementById('contractor-view');
+            const breadcrumbHome = document.getElementById('breadcrumb-home');
+            const breadcrumbProcurement = document.getElementById('breadcrumb-procurement');
+            const breadcrumbJourney = document.getElementById('breadcrumb-journey');
+            const breadcrumbDivider = document.getElementById('breadcrumb-divider');
+            const journeyTitleDisplay = document.getElementById('journey-title-display');
+            const journeyControlsHeader = document.getElementById('journey-controls-header');
+            const showCreateModalBtn = document.getElementById('show-create-modal');
+            const createModal = document.getElementById('create-modal');
+            const confirmCreateBtn = document.getElementById('confirm-create');
+            const procurementNameInputModal = document.getElementById('procurement-name-modal');
+            const procurementTypeInputModal = document.getElementById('procurement-type-modal');
+            const procurementDescInputModal = document.getElementById('procurement-desc-modal');
+            const modalInitialParticipantsList = document.getElementById('modal-initial-participants-list');
+            const initialParticipantNameInput = document.getElementById('initial-participant-name');
+            const initialParticipantRoleSelect = document.getElementById('initial-participant-role');
+            const addInitialParticipantBtn = document.getElementById('add-initial-participant-btn');
+            const initialDocUploadArea = document.getElementById('initial-doc-upload-area');
+            const initialDocList = document.getElementById('initial-doc-list');
+
+            const editPhasesBtn = document.getElementById('edit-phases-btn');
+            const editPhasesModal = document.getElementById('edit-phases-modal');
+            const modalPhasesList = document.getElementById('modal-phases-list');
+            const newPhaseNameInput = document.getElementById('new-phase-name');
+            const addNewPhaseBtn = document.getElementById('add-new-phase-btn');
+            const savePhasesBtn = document.getElementById('save-phases-btn');
+            const journeyPhasesDisplay = document.getElementById('journey-phases-display');
+            const advancePhaseBtn = document.getElementById('advance-phase-btn');
+
+            const manageParticipantsBtn = document.getElementById('manage-participants-btn');
+            const manageParticipantsModal = document.getElementById('manage-participants-modal');
+            const modalParticipantsList = document.getElementById('modal-participants-list');
+            const newParticipantNameInput = document.getElementById('new-participant-name');
+            const newParticipantRoleSelect = document.getElementById('new-participant-role');
+            const addNewParticipantBtn = document.getElementById('add-new-participant-btn');
+            const participantsListDisplay = document.getElementById('participants-list');
+
+            const addTaskJourneyBtn = document.getElementById('add-task-journey');
+            const toolbeltAddTaskBtn = document.getElementById('toolbelt-add-task');
+            const addTaskModal = document.getElementById('add-task-modal');
+            const taskTypeRadios = document.querySelectorAll('input[name="task-type"]');
+            const taskFieldsDiv = document.getElementById('task-fields');
+            const checklistFieldsDiv = document.getElementById('checklist-fields');
+            const taskDescriptionInput = document.getElementById('task-description');
+            const checklistTitleInput = document.getElementById('checklist-title');
+            const checklistItemsContainer = document.getElementById('checklist-items-container');
+            const addChecklistItemModalBtn = document.getElementById('add-checklist-item-modal-btn');
+            const taskAssigneeSelect = document.getElementById('task-assignee');
+            const taskDueDateInput = document.getElementById('task-due-date');
+            const saveTaskBtn = document.getElementById('save-task-btn');
+            const taskListContainer = document.getElementById('task-list-container');
+            const documentsListDisplay = document.getElementById('documents-list');
+            const activityLogDisplay = document.getElementById('activity-log');
+            const journeyBallInCourtDisplay = document.getElementById('journey-ball-in-court');
+
+            const toolbeltJourneyInfo = document.getElementById('toolbelt-journey-info');
+            const toolbeltComments = document.getElementById('toolbelt-comments');
+            const tbJourneyName = document.getElementById('tb-journey-name');
+            const tbJourneyPhase = document.getElementById('tb-journey-phase');
+            const tbJourneyBic = document.getElementById('tb-journey-bic');
+            const tbJourneyDeadline = document.getElementById('tb-journey-deadline');
+            const tbCommentsList = document.getElementById('tb-comments-list');
+
+            const toolbeltUploadDocBtn = document.getElementById('toolbelt-upload-doc');
+            const uploadDocJourneyBtn = document.getElementById('upload-doc-journey');
+            const switchToContractorBtn = document.getElementById('switch-to-contractor-view');
+            const switchToOwnerBtn = document.getElementById('switch-to-owner-view');
+
+            const ownerDashboardList = document.getElementById('owner-dashboard-list');
+            const contractorDashboardList = document.getElementById('contractor-dashboard-list');
+            const statActive = document.getElementById('stat-active');
+            const statPending = document.getElementById('stat-pending');
+            const statAwarded = document.getElementById('stat-awarded');
+            const statBicOwner = document.getElementById('stat-bic-owner');
+
+            // NEW: Add Comment Modal Elements
+            const addCommentModal = document.getElementById('add-comment-modal');
+            const saveCommentBtn = document.getElementById('save-comment-btn');
+            const commentTextarea = document.getElementById('comment-textarea');
+            const toolbeltAddCommentBtn = document.getElementById('toolbelt-add-comment');
+
+            // --- State Simulation ---
+            let currentView = 'dashboard';
+            let activeJourneyId = null;
+
+            let tempInitialParticipants = [];
+            let tempInitialFiles = [];
+
+            // Sample journeys data
+            let journeys = {
+                "proc-1": {
+                    id: "proc-1",
+                    name: "Office Renovation Project",
+                    phaseIndex: 1,
+                    ballInCourt: "Contractor",
+                    deadline: "2025-04-15",
+                    status: "RFP Sent",
+                    owner: "Acme Corp",
+                    action: "Submit Proposal",
+                    participants: [
+                        { name: "Michael Brown", role: "Owner" },
+                        { name: "Dave Trebas", role: "Owner" },
+                        { name: "ABC Contractors (Jay T)", role: "Contractor" },
+                        { name: "Design Firm X", role: "Reviewer"}
+                    ],
+                    tasks: [
+                        {
+                            type: 'checklist',
+                            title: "Contractor Pre-Submission",
+                            assignee: "Contractor",
+                            dueDate: "2025-04-14",
+                            items: [
+                                {text: "Confirm Insurance", completed: true},
+                                {text: "Upload Schedule", completed: false},
+                                {text: "Finalize Estimate", completed: false}
+                            ]
+                        },
+                        {
+                            type: 'task',
+                            description: "Review Design Mockups",
+                            assignee: "Reviewer",
+                            dueDate: "2025-04-10",
+                            completed: false
+                        }
+                    ],
+                    documents: [
+                        { title: "RFP Package v1.1", meta: "Apr 2", icon: "fa-file-contract" },
+                        { title: "Site Photos", meta: "Apr 3", icon: "fa-file-image" }
+                    ],
+                    log: [
+                        { time: "Apr 4, 9:00 AM", text: "Task assigned: Review Design Mockups to Design Firm X" },
+                        { time: "Apr 3, 2:15 PM", text: "<strong>Dave Trebas</strong> sent RFP package to contractors" },
+                        { time: "Apr 1, 11:00 AM", text: "Journey started by <strong>Michael Brown</strong>" }
+                    ]
+                },
+                "proc-2": {
+                    id: "proc-2",
+                    name: "HVAC Replacement - Building A",
+                    phaseIndex: 2,
+                    ballInCourt: "Owner",
+                    deadline: "2025-04-10",
+                    status: "Response Received",
+                    participants: [
+                        { name: "Michael Brown", role: "Owner" },
+                        { name: "XYZ Renovations (John D)", role: "Contractor" }
+                    ],
+                    tasks: [
+                        {
+                            type: 'task',
+                            description: "Review HVAC proposal",
+                            assignee: "Owner",
+                            dueDate: "",
+                            completed: false
+                        }
+                    ],
+                    documents: [
+                        { title: "XYZ HVAC Proposal", meta: "Apr 9", icon: "fa-file-pdf" },
+                        { title: "Building A Floorplan", meta: "Apr 1", icon: "fa-file-lines"}
+                    ],
+                    log: [
+                        { time: "Apr 9, 1:30 PM", text: "Proposal received from XYZ Renovations" },
+                        { time: "Apr 1, 1:00 PM", text: "Journey started" }
+                    ]
+                },
+                "proc-3": {
+                    id: "proc-3",
+                    name: "Parking Lot Resurfacing",
+                    phaseIndex: 3,
+                    ballInCourt: "Owner",
+                    deadline: "2025-04-08",
+                    status: "Under Review",
+                    participants: [
+                        { name: "Michael Brown", role: "Owner" },
+                        { name: "PaveIt Inc", role: "Contractor" }
+                    ],
+                    tasks: [
+                        {
+                            type: 'task',
+                            description: "Final Review of PaveIt Bid",
+                            assignee: "Owner",
+                            dueDate: "2025-04-08",
+                            completed: false
+                        }
+                    ],
+                    documents: [
+                        { title: "PaveIt Resurfacing Bid", meta: "Apr 5", icon: "fa-file-invoice-dollar" }
+                    ],
+                    log: [
+                        { time: "Apr 5", text: "Bid received" }
+                    ]
+                },
+                "proc-4": {
+                    id: "proc-4",
+                    name: "Solar Panel Installation",
+                    phaseIndex: 4,
+                    ballInCourt: "Contractor",
+                    deadline: "2025-05-01",
+                    status: "Awarded (NTP)",
+                    owner: "Acme Corp",
+                    action: "Begin Work",
+                    participants: [
+                        { name: "Michael Brown", role: "Owner" },
+                        { name: "Solaris Systems", role: "Contractor" }
+                    ],
+                    tasks: [
+                        {
+                            type: 'task',
+                            description: "Submit Mobilization Plan",
+                            assignee: "Contractor",
+                            dueDate: "2025-04-25",
+                            completed: false
+                        }
+                    ],
+                    documents: [
+                        { title: "NTP Document", meta: "Apr 20", icon: "fa-file-signature" }
+                    ],
+                    log: [
+                        { time: "Apr 20", text: "Notice to Proceed Issued" }
+                    ]
+                },
+                "proc-5": {
+                    id: "proc-5",
+                    name: "Elevator Maintenance",
+                    phaseIndex: 2,
+                    ballInCourt: "Contractor",
+                    deadline: "2025-04-12",
+                    status: "Revision Requested",
+                    owner: "Globex Inc",
+                    action: "Submit Revised Quote",
+                    participants: [
+                        { name: "Jane Doe (Globex)", role: "Owner" },
+                        { name: "Otis Elevators", role: "Contractor" }
+                    ],
+                    tasks: [
+                        {
+                            type: 'task',
+                            description: "Submit Revised Maintenance Quote",
+                            assignee: "Contractor",
+                            dueDate: "2025-04-12",
+                            completed: false
+                        }
+                    ],
+                    documents: [
+                        { title: "Initial Quote", meta: "Apr 6", icon: "fa-file-alt" }
+                    ],
+                    log: [
+                        { time: "Apr 10", text: "Revision requested by Jane Doe" }
+                    ]
+                }
+            };
+
+            let defaultPhases = [
+                "Initiation/Scope",
+                "RFP Sent",
+                "Response",
+                "Review",
+                "Awarded (NTP)",
+                "Construction",
+                "Closeout"
+            ];
+
+            let journeyPhases = [...defaultPhases];
+
+            // --- Utility Functions ---
+            function addSafeListener(element, event, handler) {
+                if (element) {
+                    element.addEventListener(event, handler);
+                } else {
+                    console.warn("Element not found for listener:", element);
+                }
+            }
+
+            function showModal(modalElement) {
+                if (modalElement) modalElement.style.display = 'flex';
+            }
+
+            function hideModal(modalElement) {
+                if (modalElement) modalElement.style.display = 'none';
+            }
+
+            function switchView(viewToShow) {
+                dashboardView.classList.remove('active');
+                journeyView.classList.remove('active');
+                contractorView.classList.remove('active');
+
+                const targetView = document.getElementById(`${viewToShow}-view`);
+                if (targetView) targetView.classList.add('active');
+
+                currentView = viewToShow;
+
+                if (viewToShow === 'dashboard' || viewToShow === 'contractor') {
+                    activeJourneyId = null;
+                }
+
+                updateUIState();
+            }
+
+            function updateUIState() {
+                // Remove active from all left nav items
+                document.querySelectorAll('.left-nav .nav-item').forEach(item => item.classList.remove('active'));
+                procurementNav.classList.add('active');
+
+                const activeJourneyData = activeJourneyId ? journeys[activeJourneyId] : null;
+                const currentPhaseList = activeJourneyData?.phases || defaultPhases;
+
+                if (currentView === 'dashboard') {
+                    dashboardNavItem.classList.add('active');
+                } else if (currentView === 'contractor') {
+                    contractorNavItem.classList.add('active');
+                }
+
+                breadcrumbJourney.style.display = activeJourneyData ? 'inline' : 'none';
+                breadcrumbDivider.style.display = activeJourneyData ? 'inline' : 'none';
+                breadcrumbJourney.textContent = activeJourneyData ? activeJourneyData.name : '';
+                journeyControlsHeader.style.display = activeJourneyData ? 'flex' : 'none';
+                toolbeltJourneyInfo.style.display = activeJourneyData ? 'block' : 'none';
+                toolbeltComments.style.display = activeJourneyData ? 'block' : 'none';
+
+                if (activeJourneyData) {
+                    tbJourneyName.textContent = activeJourneyData.name;
+                    tbJourneyPhase.textContent = currentPhaseList[activeJourneyData.phaseIndex] || 'N/A';
+                    tbJourneyBic.textContent = activeJourneyData.ballInCourt || '?';
+                    tbJourneyBic.className = `ball-badge ball-${(activeJourneyData.ballInCourt || '').toLowerCase()}`;
+                    tbJourneyDeadline.textContent = activeJourneyData.deadline || 'N/A';
+
+                    renderToolbeltComments(activeJourneyData.log || []);
+                }
+
+                // Update the top-level stats after any changes
+                updateDashboardStats();
+            }
+
+            function updateDashboardStats() {
+                const allJourneys = Object.values(journeys);
+                statActive.textContent = allJourneys.length;
+                statPending.textContent = allJourneys.filter(j => j.ballInCourt === 'Contractor' && j.phaseIndex < 4).length;
+                statAwarded.textContent = allJourneys.filter(j => j.phaseIndex >= 4).length;
+                statBicOwner.textContent = allJourneys.filter(j => j.ballInCourt === 'Owner').length;
+            }
+
+            // --- Rendering Functions ---
+            function renderOwnerDashboard() {
+                ownerDashboardList.innerHTML = '';
+                Object.values(journeys).forEach(j => {
+                    const currentPhaseList = j.phases || defaultPhases;
+                    const tr = document.createElement('tr');
+                    tr.className = 'procurement-item';
+                    tr.dataset.id = j.id;
+                    tr.innerHTML = `
+                        <td>${j.name}</td>
+                        <td>${currentPhaseList[j.phaseIndex] || 'N/A'}</td>
+                        <td><span class="ball-badge ball-${(j.ballInCourt || '').toLowerCase()}">${j.ballInCourt || '?'}</span></td>
+                        <td>${j.deadline || 'N/A'}</td>
+                        <td><span class="status-indicator status-${(j.status || 'initiation').split(' ')[0].toLowerCase()}">${j.status || 'Initiation'}</span></td>
+                    `;
+                    ownerDashboardList.appendChild(tr);
+                });
+
+                document.querySelectorAll('#owner-dashboard-list .procurement-item').forEach(item => {
+                    addSafeListener(item, 'click', function() {
+                        loadJourneyData(this.dataset.id);
+                    });
+                });
+            }
+
+            function renderContractorDashboard() {
+                contractorDashboardList.innerHTML = '';
+
+                Object.values(journeys)
+                    .filter(j => j.ballInCourt === 'Contractor' || j.status === 'Awarded (NTP)' || j.status === 'Revision Requested')
+                    .forEach(j => {
+                        const currentPhaseList = j.phases || defaultPhases;
+                        const tr = document.createElement('tr');
+                        tr.className = 'procurement-item';
+                        tr.dataset.id = j.id;
+                        tr.innerHTML = `
+                            <td>${j.name}</td>
+                            <td>${j.owner || 'Unknown Owner'}</td>
+                            <td>${j.action || 'View Details'}</td>
+                            <td>${j.deadline || 'N/A'}</td>
+                            <td><span class="status-indicator status-${(j.status || 'initiation').split(' ')[0].toLowerCase()}">${j.status || 'Initiation'}</span></td>
+                        `;
+                        contractorDashboardList.appendChild(tr);
+                    });
+
+                document.querySelectorAll('#contractor-dashboard-list .procurement-item').forEach(item => {
+                    addSafeListener(item, 'click', function() {
+                        loadJourneyData(this.dataset.id);
+                    });
+                });
+            }
+
+            function renderJourneyPhases(phases, activeIndex) {
+                journeyPhasesDisplay.innerHTML = '';
+                (phases || defaultPhases).forEach((phaseName, index) => {
+                    const phaseDiv = document.createElement('div');
+                    phaseDiv.className = 'phase';
+
+                    if (index < activeIndex) phaseDiv.classList.add('completed');
+                    if (index === activeIndex) phaseDiv.classList.add('active');
+
+                    phaseDiv.innerHTML = `
+                        <div class="phase-dot"></div>
+                        <div class="phase-label">${phaseName}</div>
+                    `;
+                    journeyPhasesDisplay.appendChild(phaseDiv);
+                });
+            }
+
+            function renderPhasesForEdit(phases) {
+                modalPhasesList.innerHTML = '';
+                (phases || []).forEach((phaseName, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item';
+                    li.innerHTML = `
+                        <span><i class="fa-solid fa-grip-lines" style="cursor: grab; margin-right: 8px; color: #ccc;"></i> ${phaseName}</span>
+                        <button class="btn btn-sm btn-outline-danger delete-phase-btn" data-index="${index}">
+                            <i class="fa-solid fa-trash-alt"></i>
+                        </button>
+                    `;
+                    modalPhasesList.appendChild(li);
+                });
+
+                document.querySelectorAll('.delete-phase-btn').forEach(btn => {
+                    addSafeListener(btn, 'click', function() {
+                        const i = parseInt(this.dataset.index);
+                        journeyPhases.splice(i, 1);
+                        renderPhasesForEdit(journeyPhases);
+                    });
+                });
+            }
+
+            function renderParticipants(participants) {
+                participantsListDisplay.innerHTML = '';
+                (participants || []).forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'document-card';
+                    div.innerHTML = `
+                        <div class="document-icon"><i class="fa-solid ${p.role === 'Owner' ? 'fa-user-tie' : (p.role === 'Contractor' ? 'fa-user-hard-hat' : 'fa-user')}"></i></div>
+                        <div class="document-info">
+                            <div class="document-title">${p.name} <span class="participant-role">(${p.role})</span></div>
+                        </div>
+                    `;
+                    participantsListDisplay.appendChild(div);
+                });
+
+                if (!participants || participants.length === 0) {
+                    participantsListDisplay.innerHTML = `<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No participants added yet.</div>`;
+                }
+            }
+
+            function renderParticipantsForEdit(participants) {
+                modalParticipantsList.innerHTML = '';
+                (participants || []).forEach((p, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item';
+                    li.innerHTML = `
+                        <span>${p.name} <span class="participant-role">(${p.role})</span></span>
+                        <button class="btn btn-sm btn-outline-danger delete-participant-btn" data-index="${index}">
+                            <i class="fa-solid fa-trash-alt"></i>
+                        </button>
+                    `;
+                    modalParticipantsList.appendChild(li);
+                });
+
+                document.querySelectorAll('.delete-participant-btn').forEach(btn => {
+                    addSafeListener(btn, 'click', function() {
+                        const i = parseInt(this.dataset.index);
+                        const journeyData = journeys[activeJourneyId];
+                        if(journeyData?.participants) {
+                            journeyData.participants.splice(i, 1);
+                            renderParticipantsForEdit(journeyData.participants);
+                            renderParticipants(journeyData.participants);
+                        }
+                    });
+                });
+            }
+
+            function renderTasks(tasks) {
+                taskListContainer.innerHTML = `<div class="task-list-header">Active Tasks / Checklists</div>`;
+                (tasks || []).forEach((task, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'task-item-container';
+
+                    if (task.type === 'checklist') {
+                        div.innerHTML = `
+                            <div class="task-header">
+                                <span class="task-title">
+                                    <i class="fa-solid fa-list-check" style="margin-right: 5px; color: #6c757d;"></i>
+                                    ${task.title || 'Untitled Checklist'}
+                                </span>
+                                <span class="task-meta-info">Assigned: ${task.assignee} ${task.dueDate ? `• Due: ${task.dueDate}` : ''}</span>
+                            </div>
+                            <ul class="checklist-items-display">
+                                ${
+                                    (task.items || [])
+                                    .map((item, itemIndex) => `
+                                        <li>
+                                            <span class="custom-checkbox ${item.completed ? 'checked' : ''}" data-task-index="${index}" data-item-index="${itemIndex}"></span>
+                                            <span>${item.text}</span>
+                                        </li>
+                                    `).join('')
+                                }
+                            </ul>
+                        `;
+                    } else {
+                        div.innerHTML = `
+                            <div style="display: flex; align-items: flex-start;">
+                                <span class="custom-checkbox ${task.completed ? 'checked' : ''}" data-task-index="${index}" style="margin-top: 2px;"></span>
+                                <div style="flex: 1; margin-left: 5px;">
+                                    <div class="task-description">${task.description || 'Untitled Task'}</div>
+                                    <div class="task-meta-info">Assigned: ${task.assignee} ${task.dueDate ? `• Due: ${task.dueDate}` : ''}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    taskListContainer.appendChild(div);
+                });
+
+                if (!tasks || tasks.length === 0) {
+                    taskListContainer.innerHTML += `<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No active tasks or checklists.</div>`;
+                }
+            }
+
+            function renderDocuments(docs) {
+                documentsListDisplay.innerHTML = '';
+                (docs || []).forEach(doc => {
+                    const div = document.createElement('div');
+                    div.className = 'document-card';
+                    div.innerHTML = `
+                        <div class="document-icon"><i class="fa-solid ${doc.icon || 'fa-file'}"></i></div>
+                        <div class="document-info">
+                            <div class="document-title">${doc.title}</div>
+                            <div class="document-meta">${doc.meta}</div>
+                        </div>
+                        <div class="document-actions">
+                            <i class="fa-solid fa-download" title="Download"></i>
+                            <i class="fa-solid fa-info-circle" title="Details"></i>
+                        </div>
+                    `;
+                    documentsListDisplay.appendChild(div);
+                });
+
+                if (!docs || docs.length === 0) {
+                    documentsListDisplay.innerHTML = `<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No documents uploaded yet.</div>`;
+                }
+            }
+
+            function renderActivityLog(log) {
+                activityLogDisplay.innerHTML = '';
+                (log || []).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'timeline-item';
+                    div.innerHTML = `
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-time">${item.time}</div>
+                            <div class="timeline-text">${item.text}</div>
+                        </div>
+                    `;
+                    activityLogDisplay.appendChild(div);
+                });
+
+                if (!log || log.length === 0) {
+                    activityLogDisplay.innerHTML = `<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No activity logged yet.</div>`;
+                }
+            }
+
+            function renderToolbeltComments(log) {
+                tbCommentsList.innerHTML = '';
+                if (!log || log.length === 0) {
+                    tbCommentsList.innerHTML = `<p style="font-size: 13px; color: #888;">No comments/activity yet.</p>`;
+                    return;
+                }
+
+                // Show only the top 5 for brevity
+                log.slice(0, 5).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'toolbelt-comment';
+                    const nameMatch = item.text.match(/<strong>(.*?)<\/strong>/);
+                    const name = nameMatch ? nameMatch[1] : "System";
+                    const textOnly = item.text.replace(/<strong>.*?<\/strong>\s*/, '');
+
+                    div.innerHTML = `
+                        <div class="toolbelt-comment-meta">${name}</div>
+                        <div class="toolbelt-comment-time">${item.time}</div>
+                        <div class="toolbelt-comment-text">${textOnly}</div>
+                    `;
+                    tbCommentsList.appendChild(div);
+                });
+            }
+
+            function loadJourneyData(journeyId) {
+                activeJourneyId = journeyId;
+                const journeyData = journeys[activeJourneyId];
+                if (!journeyData) {
+                    console.error("Journey not found:", journeyId);
+                    activeJourneyId = null;
+                    switchView('dashboard');
+                    return;
+                }
+
+                console.log("Loading Journey:", journeyData.name, "ID:", activeJourneyId);
+                journeyPhases = journeyData.phases || [...defaultPhases];
+
+                journeyTitleDisplay.textContent = journeyData.name;
+                journeyBallInCourtDisplay.textContent = `Ball In Court: ${journeyData.ballInCourt}`;
+                journeyBallInCourtDisplay.className = `ball-badge ball-${(journeyData.ballInCourt || '').toLowerCase()}`;
+
+                renderJourneyPhases(journeyPhases, journeyData.phaseIndex);
+                renderParticipants(journeyData.participants || []);
+                renderTasks(journeyData.tasks || []);
+                renderDocuments(journeyData.documents || []);
+                renderActivityLog(journeyData.log || []);
+
+                switchView('journey');
+            }
+
+            // --- Event Handlers ---
+            addSafeListener(procurementNav, 'click', () => switchView('dashboard'));
+            addSafeListener(dashboardNavItem, 'click', () => switchView('dashboard'));
+            addSafeListener(contractorNavItem, 'click', () => switchView('contractor'));
+            addSafeListener(breadcrumbHome, 'click', (e) => {
+                e.preventDefault();
+                switchView('dashboard');
+            });
+            addSafeListener(breadcrumbProcurement, 'click', (e) => {
+                e.preventDefault();
+                switchView('dashboard');
+            });
+            addSafeListener(switchToContractorBtn, 'click', () => switchView('contractor'));
+            addSafeListener(switchToOwnerBtn, 'click', () => switchView('dashboard'));
+
+            // Create Journey Modal
+            addSafeListener(showCreateModalBtn, 'click', () => {
+                // Reset temp arrays
+                tempInitialParticipants = [{ name: "Me (Creator)", role: "Owner" }];
+                tempInitialFiles = [];
+                renderInitialParticipantsForModal();
+                initialDocList.innerHTML = '';
+
+                procurementNameInputModal.value = '';
+                procurementDescInputModal.value = '';
+                showModal(createModal);
+            });
+
+            function renderInitialParticipantsForModal() {
+                modalInitialParticipantsList.innerHTML = '';
+                tempInitialParticipants.forEach((p, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item';
+                    li.innerHTML = `<span>${p.name} <span class="participant-role">(${p.role})</span></span>`;
+                    // Allow removal of participants other than the first "Me (Creator)"
+                    if (index > 0) {
+                        li.innerHTML += `
+                            <button class="btn btn-sm btn-outline-danger delete-initial-participant-btn" data-index="${index}">
+                                <i class="fa-solid fa-trash-alt"></i>
+                            </button>
+                        `;
+                    }
+                    modalInitialParticipantsList.appendChild(li);
+                });
+
+                document.querySelectorAll('.delete-initial-participant-btn').forEach(btn => {
+                    addSafeListener(btn, 'click', function() {
+                        const i = parseInt(this.dataset.index);
+                        tempInitialParticipants.splice(i, 1);
+                        renderInitialParticipantsForModal();
+                    });
+                });
+            }
+
+            addSafeListener(addInitialParticipantBtn, 'click', () => {
+                const n = initialParticipantNameInput.value.trim();
+                const r = initialParticipantRoleSelect.value;
+                if (n && r) {
+                    tempInitialParticipants.push({ name: n, role: r });
+                    renderInitialParticipantsForModal();
+                    initialParticipantNameInput.value = '';
+                }
+            });
+
+            addSafeListener(initialDocUploadArea, 'click', () => {
+                // Simulate doc selection for now
+                const f = `Initial_Doc_${tempInitialFiles.length + 1}.pdf`;
+                tempInitialFiles.push({
+                    title: f,
+                    meta: `Added Now • PDF`,
+                    icon: 'fa-file-pdf'
+                });
+                const li = document.createElement('li');
+                li.textContent = f;
+                initialDocList.appendChild(li);
+            });
+
+            addSafeListener(confirmCreateBtn, 'click', () => {
+                const newId = `proc-${Object.keys(journeys).length + 1}`;
+                const newName = procurementNameInputModal.value.trim() || `New Journey ${Object.keys(journeys).length + 1}`;
+                const newType = procurementTypeInputModal.value;
+                const newDesc = procurementDescInputModal.value;
+
+                journeys[newId] = {
+                    id: newId,
+                    name: newName,
+                    type: newType,
+                    description: newDesc,
+                    phaseIndex: 0,
+                    ballInCourt: "Owner",
+                    deadline: "",
+                    status: defaultPhases[0],
+                    participants: [...tempInitialParticipants],
+                    tasks: [],
+                    documents: [...tempInitialFiles],
+                    log: [
+                        {
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}),
+                            text: `Journey "${newName}" created`
+                        }
+                    ]
+                };
+
+                renderOwnerDashboard();
+                renderContractorDashboard();
+                hideModal(createModal);
+                loadJourneyData(newId);
+            });
+
+            // Edit Phases Modal
+            addSafeListener(editPhasesBtn, 'click', () => {
+                journeyPhases = activeJourneyId && journeys[activeJourneyId].phases
+                    ? [...journeys[activeJourneyId].phases]
+                    : [...defaultPhases];
+
+                renderPhasesForEdit(journeyPhases);
+                showModal(editPhasesModal);
+            });
+
+            addSafeListener(addNewPhaseBtn, 'click', () => {
+                const name = newPhaseNameInput.value.trim();
+                if (name) {
+                    journeyPhases.push(name);
+                    renderPhasesForEdit(journeyPhases);
+                    newPhaseNameInput.value = '';
+                }
+            });
+
+            addSafeListener(savePhasesBtn, 'click', () => {
+                const journeyData = journeys[activeJourneyId];
+                if(journeyData) {
+                    journeyData.phases = [...journeyPhases];
+                    renderJourneyPhases(journeyData.phases, journeyData.phaseIndex);
+                }
+                hideModal(editPhasesModal);
+            });
+
+            addSafeListener(advancePhaseBtn, 'click', () => {
+                const journeyData = journeys[activeJourneyId];
+                const currentPhaseList = journeyData?.phases || defaultPhases;
+
+                if (journeyData && journeyData.phaseIndex < currentPhaseList.length - 1) {
+                    journeyData.phaseIndex++;
+                    // Toggle ball in court
+                    journeyData.ballInCourt = (journeyData.phaseIndex % 2 === 0) ? "Owner" : "Contractor";
+                    journeyData.status = currentPhaseList[journeyData.phaseIndex];
+                    journeyData.log.unshift({
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}),
+                        text: `Advanced to phase: <strong>${currentPhaseList[journeyData.phaseIndex]}</strong>`
+                    });
+
+                    renderJourneyPhases(currentPhaseList, journeyData.phaseIndex);
+                    journeyBallInCourtDisplay.textContent = `Ball In Court: ${journeyData.ballInCourt}`;
+                    journeyBallInCourtDisplay.className = `ball-badge ball-${(journeyData.ballInCourt || '').toLowerCase()}`;
+                    renderActivityLog(journeyData.log);
+                    updateUIState();
+                    renderOwnerDashboard();
+                    renderContractorDashboard();
+                } else {
+                    alert("Cannot advance further or no active journey.");
+                }
+            });
+
+            // Manage Participants Modal
+            addSafeListener(manageParticipantsBtn, 'click', () => {
+                const journeyData = journeys[activeJourneyId];
+                if(journeyData) {
+                    renderParticipantsForEdit(journeyData.participants || []);
+                    showModal(manageParticipantsModal);
+                }
+            });
+
+            addSafeListener(addNewParticipantBtn, 'click', () => {
+                const journeyData = journeys[activeJourneyId];
+                const name = newParticipantNameInput.value.trim();
+                const role = newParticipantRoleSelect.value;
+
+                if (journeyData && name && role) {
+                    if (!journeyData.participants) journeyData.participants = [];
+                    journeyData.participants.push({ name, role });
+                    renderParticipantsForEdit(journeyData.participants);
+                    renderParticipants(journeyData.participants);
+                    newParticipantNameInput.value = '';
+                }
+            });
+
+            // Add Task / Checklist Modal Logic
+            function setupAddTaskModal() {
+                taskTypeRadios.forEach(radio => {
+                    addSafeListener(radio, 'change', function() {
+                        if (this.value === 'task') {
+                            taskFieldsDiv.classList.add('active');
+                            checklistFieldsDiv.classList.remove('active');
+                        } else {
+                            taskFieldsDiv.classList.remove('active');
+                            checklistFieldsDiv.classList.add('active');
+                        }
+                    });
+                });
+
+                addSafeListener(addChecklistItemModalBtn, 'click', () => {
+                    const newItemDiv = document.createElement('div');
+                    newItemDiv.className = 'checklist-item-input-group';
+                    newItemDiv.innerHTML = `
+                        <input type="text" class="form-control form-control-sm checklist-item-input" placeholder="Checklist item ${checklistItemsContainer.children.length + 1}">
+                        <button class="btn btn-sm btn-outline-danger remove-checklist-item-btn" type="button">
+                            <i class="fa-solid fa-trash-alt"></i>
+                        </button>
+                    `;
+                    checklistItemsContainer.appendChild(newItemDiv);
+
+                    addSafeListener(newItemDiv.querySelector('.remove-checklist-item-btn'), 'click', function() {
+                        this.closest('.checklist-item-input-group').remove();
+                    });
+                });
+
+                addSafeListener(checklistItemsContainer, 'click', function(event) {
+                    if (event.target.closest('.remove-checklist-item-btn')) {
+                        if (checklistItemsContainer.children.length > 1) {
+                            event.target.closest('.checklist-item-input-group').remove();
+                        } else {
+                            alert("Cannot remove the last checklist item.");
+                        }
+                    }
+                });
+            }
+
+            function openAddTaskModal() {
+                if (!activeJourneyId) {
+                    alert("Please select a Procurement Journey first.");
+                    return;
+                }
+                // Reset fields
+                document.querySelector('input[name="task-type"][value="task"]').checked = true;
+                taskFieldsDiv.classList.add('active');
+                checklistFieldsDiv.classList.remove('active');
+
+                taskDescriptionInput.value = '';
+                checklistTitleInput.value = '';
+                checklistItemsContainer.innerHTML = `
+                    <div class="checklist-item-input-group">
+                        <input type="text" class="form-control form-control-sm checklist-item-input" placeholder="Checklist item 1">
+                        <button class="btn btn-sm btn-outline-danger remove-checklist-item-btn" type="button" disabled>
+                            <i class="fa-solid fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+
+                taskAssigneeSelect.value = 'Contractor';
+                taskDueDateInput.value = '';
+                showModal(addTaskModal);
+            }
+
+            addSafeListener(addTaskJourneyBtn, 'click', openAddTaskModal);
+            addSafeListener(toolbeltAddTaskBtn, 'click', openAddTaskModal);
+
+            addSafeListener(saveTaskBtn, () => {
+                const journeyData = journeys[activeJourneyId];
+                if (!journeyData) return;
+
+                const taskType = document.querySelector('input[name="task-type"]:checked').value;
+                const assignee = taskAssigneeSelect.value;
+                const dueDate = taskDueDateInput.value;
+                let newItem = null;
+                let logText = "";
+
+                if (taskType === 'task') {
+                    const description = taskDescriptionInput.value.trim();
+                    if (!description) {
+                        alert("Please enter a task description.");
+                        return;
+                    }
+                    newItem = {
+                        type: 'task',
+                        description,
+                        assignee,
+                        dueDate,
+                        completed: false
+                    };
+                    logText = `Task added: "${description}" assigned to ${assignee}`;
+                } else {
+                    const title = checklistTitleInput.value.trim();
+                    if (!title) {
+                        alert("Please enter a checklist title.");
+                        return;
+                    }
+                    const items = [];
+                    checklistItemsContainer.querySelectorAll('.checklist-item-input').forEach(input => {
+                        const text = input.value.trim();
+                        if (text) items.push({ text, completed: false });
+                    });
+
+                    if (items.length === 0) {
+                        alert("Please add at least one item to the checklist.");
+                        return;
+                    }
+
+                    newItem = {
+                        type: 'checklist',
+                        title,
+                        items,
+                        assignee,
+                        dueDate
+                    };
+                    logText = `Checklist added: "${title}" assigned to ${assignee}`;
+                }
+
+                if (!journeyData.tasks) journeyData.tasks = [];
+                journeyData.tasks.push(newItem);
+                renderTasks(journeyData.tasks);
+
+                if (!journeyData.log) journeyData.log = [];
+                journeyData.log.unshift({
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}),
+                    text: logText
+                });
+
+                renderActivityLog(journeyData.log);
+                renderToolbeltComments(journeyData.log);
+
+                hideModal(addTaskModal);
+            });
+
+            // Upload Document actions
+            function handleUploadDocument() {
+                if (!activeJourneyId) {
+                    alert("Please select a journey first.");
+                    return;
+                }
+                const journeyData = journeys[activeJourneyId];
+                const docName = prompt("Enter document name (e.g., Contractor_Proposal.pdf):");
+
+                if (docName && docName.trim() !== "") {
+                    if (!journeyData.documents) journeyData.documents = [];
+                    const newDoc = {
+                        title: docName.trim(),
+                        meta: `Added Now • PDF`,
+                        icon: 'fa-file-pdf'
+                    };
+                    journeyData.documents.push(newDoc);
+                    renderDocuments(journeyData.documents);
+
+                    if (!journeyData.log) journeyData.log = [];
+                    journeyData.log.unshift({
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}),
+                        text: `Document uploaded: "${docName.trim()}"`
+                    });
+                    renderActivityLog(journeyData.log);
+                    renderToolbeltComments(journeyData.log);
+                }
+            }
+
+            addSafeListener(toolbeltUploadDocBtn, 'click', handleUploadDocument);
+            addSafeListener(uploadDocJourneyBtn, 'click', handleUploadDocument);
+
+            // ADD COMMENT MODAL (replaces simple prompt usage)
+            addSafeListener(toolbeltAddCommentBtn, 'click', () => {
+                // Only allow showing comment modal if there's an active journey
+                if (!activeJourneyId || !journeys[activeJourneyId]) {
+                    alert("Please select an active journey first.");
+                    return;
+                }
+                commentTextarea.value = ''; // Clear previous text
+                showModal(addCommentModal);
+            });
+
+            addSafeListener(saveCommentBtn, 'click', () => {
+                const journeyData = journeys[activeJourneyId];
+                if (!journeyData) return;
+
+                const text = commentTextarea.value.trim();
+                if (!text) {
+                    alert("Please enter some comment text.");
+                    return;
+                }
+
+                if (!journeyData.log) journeyData.log = [];
+                // Simulate the user as 'Me'
+                journeyData.log.unshift({
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}),
+                    text: `<strong>Me:</strong> ${text}`
+                });
+
+                renderActivityLog(journeyData.log);
+                renderToolbeltComments(journeyData.log);
+                hideModal(addCommentModal);
+            });
+
+            // Generic Modal Close Buttons
+            document.querySelectorAll('.modal-close, .close-modal').forEach(button => {
+                addSafeListener(button, 'click', () => {
+                    const modal = button.closest('.modal-backdrop');
+                    hideModal(modal);
+                });
+            });
+
+            // Close modal if clicking outside content
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                addSafeListener(backdrop, 'click', (e) => {
+                    if (e.target === backdrop) hideModal(backdrop);
+                });
+            });
+
+            // Task/Checklist Item Checkbox Interactivity
+            document.body.addEventListener('click', function(event) {
+                if (event.target.classList.contains('custom-checkbox')) {
+                    const taskIndex = event.target.dataset.taskIndex;
+                    const itemIndex = event.target.dataset.itemIndex;
+                    const journeyData = activeJourneyId ? journeys[activeJourneyId] : null;
+
+                    if (journeyData?.tasks && taskIndex !== undefined) {
+                        const task = journeyData.tasks[taskIndex];
+                        if (task) {
+                            let completed = event.target.classList.toggle('checked');
+                            let logEntryText = "";
+
+                            if (task.type === 'checklist' && itemIndex !== undefined && task.items) {
+                                if(task.items[itemIndex]) {
+                                    task.items[itemIndex].completed = completed;
+                                    logEntryText = `Checklist item "${task.items[itemIndex]?.text}" marked as ${completed ? 'complete' : 'incomplete'}`;
+                                }
+                            } else if (task.type === 'task') {
+                                task.completed = completed;
+                                logEntryText = `Task "${task.description}" marked as ${completed ? 'complete' : 'incomplete'}`;
+                            }
+
+                            if (logEntryText) {
+                                if (!journeyData.log) journeyData.log = [];
+                                journeyData.log.unshift({
+                                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}),
+                                    text: logEntryText
+                                });
+                                renderActivityLog(journeyData.log);
+                                renderToolbeltComments(journeyData.log);
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- Initial Load ---
+            renderOwnerDashboard();
+            renderContractorDashboard();
+            setupAddTaskModal();
+            updateUIState(); // Set initial state
+            console.log("POC Initialized (Full Functionality).");
+        });
+    </script>
+</body>
+</html>
