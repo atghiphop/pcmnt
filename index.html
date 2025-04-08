@@ -6,35 +6,49 @@
     <title>eConverge - Procurement POC (Working Comments)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* --- Styles (Complete CSS from previous versions - no changes needed here) --- */
+        :root {
+            /* Your two brand colors */
+            --primary-color: hsl(192.44,53.95%,29.8%); /* replaces old #2c7be5 */
+            --primary-color-hover: hsl(192.44,53.95%,25%); /* slightly darker for hover */
+            --secondary-color: hsl(86.18,46.61%,46.27%);   /* replaces old #28a745 for completed */
+        }
+
         /* Global Styles */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { display: flex; height: 100vh; overflow: hidden; background-color: #f5f5f5; }
 
         /* Left Navigation Panel */
         .left-nav { width: 260px; background-color: #fff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow-y: auto; }
-        .logo { padding: 15px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; }
-        .logo img { height: 30px; background-color: #eee; padding: 5px; border-radius: 3px; } /* Placeholder style */
+        .logo { padding: 15px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: center; }
+        .logo img {
+            max-width: 100%;
+            height: auto;
+        }
         .search-box { padding: 10px 15px; border-bottom: 1px solid #e0e0e0; }
         .search-box input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
         .nav-tree { flex: 1; padding: 10px 0; overflow-y: auto; }
         .nav-item { padding: 8px 15px 8px 20px; display: flex; align-items: center; cursor: pointer; transition: background-color 0.2s; font-size: 14px; }
         .nav-item:hover { background-color: #f0f0f0; }
-        .nav-item.active { background-color: #e9f5ff; color: #2c7be5; border-left: 3px solid #2c7be5; padding-left: 17px; }
+        .nav-item.active { background-color: #e9f5ff; color: var(--primary-color); border-left: 3px solid var(--primary-color); padding-left: 17px; }
         .nav-item.procurement { font-weight: 500; }
         .nav-item i.fa-solid { margin-right: 10px; font-size: 16px; width: 18px; text-align: center; }
         .nav-item .chevron { margin-left: auto; font-size: 12px; }
         .nav-child { padding-left: 15px; }
 
         /* Custom checkboxes */
-        .custom-checkbox { display: inline-block; width: 16px; height: 16px; background-color: white; border: 1px solid #ccc; border-radius: 3px; position: relative; margin-right: 10px; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
-        .custom-checkbox.checked::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; font-size: 11px; top: 1px; left: 2px; color: #2c7be5; }
+        .custom-checkbox {
+            display: inline-block; width: 16px; height: 16px; background-color: white; border: 1px solid #ccc; border-radius: 3px;
+            position: relative; margin-right: 10px; cursor: pointer; vertical-align: middle; flex-shrink: 0;
+        }
+        .custom-checkbox.checked::after {
+            content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; font-size: 11px; top: 1px; left: 2px; color: var(--primary-color);
+        }
 
         /* Main Workspace */
         .main-workspace { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .workspace-header { padding: 15px 20px; background-color: #fff; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; }
         .breadcrumb { display: flex; align-items: center; font-size: 14px; }
-        .breadcrumb a { text-decoration: none; color: #2c7be5; }
+        .breadcrumb a { text-decoration: none; color: var(--primary-color); }
         .breadcrumb a:hover { text-decoration: underline; }
         .breadcrumb span { margin: 0 5px; color: #777; }
         .user-controls { display: flex; align-items: center; }
@@ -54,20 +68,30 @@
         .toolbelt-comment-text { font-size: 13px; line-height: 1.4; }
 
         /* Common Components */
-        .btn { padding: 8px 15px; background-color: #2c7be5; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.2s; display: inline-flex; align-items: center; gap: 5px; }
-        .btn:hover { background-color: #1a68d1; }
+        .btn {
+            padding: 8px 15px; background-color: var(--primary-color); color: white; border: none; border-radius: 4px;
+            cursor: pointer; font-size: 14px; transition: background-color 0.2s; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .btn:hover { background-color: var(--primary-color-hover); }
         .btn:disabled { background-color: #adb5bd; cursor: not-allowed; opacity: 0.7; }
         .btn-secondary { background-color: #6c757d; }
         .btn-secondary:hover:not(:disabled) { background-color: #5a6268; }
         .btn-danger { background-color: #dc3545; }
         .btn-danger:hover:not(:disabled) { background-color: #c82333; }
         .btn-sm { padding: 5px 10px; font-size: 12px; }
-        .btn-outline-primary { color: #2c7be5; border: 1px solid #2c7be5; background-color: transparent; }
-        .btn-outline-primary:hover:not(:disabled) { color: white; background-color: #2c7be5; }
+        .btn-outline-primary {
+            color: var(--primary-color); border: 1px solid var(--primary-color); background-color: transparent;
+        }
+        .btn-outline-primary:hover:not(:disabled) {
+            color: white; background-color: var(--primary-color);
+        }
         .btn-outline-danger { color: #dc3545; border: 1px solid #dc3545; background-color: transparent; }
         .btn-outline-danger:hover:not(:disabled) { color: white; background-color: #dc3545; }
         .card { background-color: #fff; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
-        .card-header { padding: 15px 20px; border-bottom: 1px solid #eee; font-weight: 500; display: flex; align-items: center; justify-content: space-between; background-color: #fdfdfd; }
+        .card-header {
+            padding: 15px 20px; border-bottom: 1px solid #eee; font-weight: 500; display: flex; align-items: center;
+            justify-content: space-between; background-color: #fdfdfd;
+        }
         .card-content { padding: 20px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; }
@@ -82,15 +106,24 @@
         .upload-area i { font-size: 24px; color: #999; margin-bottom: 10px; }
 
         /* Procurement Dashboard Specific */
-        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .dashboard-stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px;
+        }
         .stat-card { background-color: #fff; padding: 15px; border-radius: 6px; box-shadow: 0 1px 5px rgba(0,0,0,0.05); }
         .stat-card h3 { font-size: 13px; color: #666; margin-bottom: 8px; }
         .stat-card .value { font-size: 22px; font-weight: 600; color: #333; }
         .procurement-list { width: 100%; border-collapse: collapse; }
-        .procurement-list th, .procurement-list td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
-        .procurement-list th { font-weight: 600; color: #555; font-size: 12px; background-color: #f9f9f9; text-transform: uppercase; letter-spacing: 0.5px; }
+        .procurement-list th, .procurement-list td {
+            padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px;
+        }
+        .procurement-list th {
+            font-weight: 600; color: #555; font-size: 12px; background-color: #f9f9f9; text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         .procurement-list tr:hover { background-color: #f0f8ff; cursor: pointer; }
-        .status-indicator { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+        .status-indicator {
+            display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; white-space: nowrap;
+        }
         .status-rfp { background-color: #e1f5fe; color: #0288d1; }
         .status-response { background-color: #fff8e1; color: #ffa000; }
         .status-review { background-color: #e8f5e9; color: #388e3c; }
@@ -104,21 +137,38 @@
         /* Journey View Specific */
         .journey-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
         .journey-title { font-size: 22px; font-weight: 600; }
-        .journey-phases { display: flex; margin-bottom: 30px; position: relative; background-color: #fff; padding: 15px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-        .journey-phases::before { content: ''; position: absolute; top: 27px; left: 12px; right: 12px; height: 3px; background-color: #e0e0e0; z-index: 0; }
+        .journey-phases {
+            display: flex; margin-bottom: 30px; position: relative; background-color: #fff; padding: 15px; border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .journey-phases::before {
+            content: ''; position: absolute; top: 27px; left: 12px; right: 12px; height: 3px; background-color: #e0e0e0; z-index: 0;
+        }
         .phase { flex: 1; text-align: center; position: relative; z-index: 1; padding: 0 5px; }
-        .phase-dot { width: 25px; height: 25px; background-color: #e0e0e0; border-radius: 50%; margin: 0 auto 10px; border: 3px solid #fff; position: relative; transition: background-color 0.3s; }
+        .phase-dot {
+            width: 25px; height: 25px; background-color: #e0e0e0; border-radius: 50%; margin: 0 auto 10px; border: 3px solid #fff;
+            position: relative; transition: background-color 0.3s;
+        }
         .phase-label { font-size: 12px; color: #666; max-width: 100px; margin: 0 auto; line-height: 1.3; }
-        .phase.active .phase-dot { background-color: #2c7be5; }
-        .phase.completed .phase-dot { background-color: #28a745; }
-        .phase.active .phase-label { color: #2c7be5; font-weight: 600; }
-        .phase.completed .phase-label { color: #28a745; font-weight: 500; }
-        .phase.completed .phase-dot::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: white; font-size: 12px; line-height: 19px; display: block; text-align: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .phase.active .phase-dot { background-color: var(--primary-color); }
+        .phase.completed .phase-dot { background-color: var(--secondary-color); }
+        .phase.active .phase-label { color: var(--primary-color); font-weight: 600; }
+        .phase.completed .phase-label { color: var(--secondary-color); font-weight: 500; }
+        .phase.completed .phase-dot::after {
+            content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; color: white; font-size: 12px; line-height: 19px;
+            display: block; text-align: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
         .journey-sections { display: flex; flex-wrap: wrap; gap: 20px; }
         .journey-column { flex: 1; min-width: 300px; }
-        .document-card { padding: 12px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 10px; display: flex; align-items: center; background-color: white; transition: transform 0.2s, box-shadow 0.2s; }
+        .document-card {
+            padding: 12px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 10px; display: flex; align-items: center;
+            background-color: white; transition: transform 0.2s, box-shadow 0.2s;
+        }
         .document-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .document-icon { width: 35px; height: 35px; background-color: #f1f8ff; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 18px; color: #2c7be5; flex-shrink: 0; }
+        .document-icon {
+            width: 35px; height: 35px; background-color: #f1f8ff; border-radius: 4px; display: flex; align-items: center;
+            justify-content: center; margin-right: 10px; font-size: 18px; color: var(--primary-color); flex-shrink: 0;
+        }
         .document-info { flex: 1; min-width: 0; }
         .document-title { font-weight: 500; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
         .document-meta { font-size: 11px; color: #888; }
@@ -130,14 +180,21 @@
         .timeline-item:last-child { padding-bottom: 0; }
         .timeline-item::before { content: ''; position: absolute; left: 4px; top: 5px; bottom: -5px; width: 2px; background-color: #e0e0e0; }
         .timeline-item:last-child::before { display: none; }
-        .timeline-dot { width: 10px; height: 10px; background-color: #2c7be5; border-radius: 50%; position: absolute; left: 0px; top: 5px; }
+        .timeline-dot {
+            width: 10px; height: 10px; background-color: var(--primary-color); border-radius: 50%; position: absolute; left: 0px; top: 5px;
+        }
         .timeline-content { /* Removed background for cleaner look */ }
         .timeline-time { font-size: 11px; color: #888; margin-bottom: 3px; }
         .timeline-text { font-size: 13px; line-height: 1.4; }
-        .immutable-indicator { display: inline-flex; align-items: center; font-size: 11px; color: #888; margin-left: 10px; background-color: #f0f0f0; padding: 2px 6px; border-radius: 10px; }
+        .immutable-indicator {
+            display: inline-flex; align-items: center; font-size: 11px; color: #888; margin-left: 10px;
+            background-color: #f0f0f0; padding: 2px 6px; border-radius: 10px;
+        }
         .immutable-indicator i { margin-right: 4px; font-size: 12px; }
         .task-list { border: 1px solid #eee; border-radius: 4px; margin-bottom: 15px; background-color: white; }
-        .task-list-header { padding: 12px 15px; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #eee; font-size: 14px; color: #444; }
+        .task-list-header {
+            padding: 12px 15px; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #eee; font-size: 14px; color: #444;
+        }
         .task-item-container { padding: 12px 15px; border-bottom: 1px solid #eee; background-color: white; font-size: 13px; }
         .task-item-container:last-child { border-bottom: none; }
         .task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
@@ -147,20 +204,34 @@
         .checklist-items-display { list-style: none; padding-left: 5px; margin-top: 8px; }
         .checklist-items-display li { display: flex; align-items: center; margin-bottom: 5px; font-size: 13px; }
         .view-toggle { display: flex; background-color: #f0f0f0; border-radius: 4px; overflow: hidden; border: 1px solid #ddd; }
-        .view-toggle-btn { flex: 1; padding: 6px 10px; text-align: center; cursor: pointer; font-size: 13px; border: none; background: none; color: #555; }
-        .view-toggle-btn.active { background-color: #2c7be5; color: white; font-weight: 500; }
+        .view-toggle-btn {
+            flex: 1; padding: 6px 10px; text-align: center; cursor: pointer; font-size: 13px; border: none; background: none; color: #555;
+        }
+        .view-toggle-btn.active { background-color: var(--primary-color); color: white; font-weight: 500; }
         .participant-role { font-size: 12px; color: #666; margin-left: 5px; font-style: italic; }
-        .modal-list-item { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .modal-list-item {
+            padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;
+        }
         .modal-list-item:last-child { border-bottom: none; }
 
         /* Modal Dialog */
-        .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; display: none; padding: 20px; }
-        .modal { background-color: white; border-radius: 6px; width: 100%; max-width: 650px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .modal-backdrop {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.6);
+            display: flex; align-items: center; justify-content: center; z-index: 1000; display: none; padding: 20px;
+        }
+        .modal {
+            background-color: white; border-radius: 6px; width: 100%; max-width: 650px; max-height: 90vh;
+            display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
         .modal-title { font-size: 18px; font-weight: 600; }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; line-height: 1; }
         .modal-body { padding: 20px; overflow-y: auto; flex-grow: 1; }
-        .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background-color: #f9f9f9; flex-shrink: 0; }
+        .modal-footer {
+            padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background-color: #f9f9f9; flex-shrink: 0;
+        }
         .modal-footer .btn { margin-left: 10px; }
         .modal-section { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee; }
         .modal-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -181,8 +252,8 @@
     <!-- Left Nav -->
     <div class="left-nav">
         <div class="logo">
-            <i class="fa-solid fa-network-wired fa-2x" style="color: #2c7be5; margin-right: 8px;"></i>
-            <span style="font-weight: 600; font-size: 18px;">eConverge</span>
+            <!-- Using your actual logo image -->
+            <img src="https://images.squarespace-cdn.com/content/v1/67608cd79b306d0d155d1909/c8f86dd2-aa25-4eaf-9b5d-1706147c424e/econ-logo-smallE.png?format=1500w" alt="eConverge Logo">
         </div>
         <div class="search-box">
             <input type="text" placeholder="Search...">
@@ -261,10 +332,14 @@
                         </button>
                     </div>
                     <div class="card-content" style="padding: 0;">
+                        <!-- Updated table to have extra columns after Name -->
                         <table class="procurement-list">
                             <thead>
                                 <tr>
                                     <th>Name</th>
+                                    <th>Contractors</th>
+                                    <th>Locations</th>
+                                    <th>Tenants</th>
                                     <th>Current Phase</th>
                                     <th>Ball In Court</th>
                                     <th>Next Deadline</th>
@@ -697,11 +772,21 @@
             let tempInitialParticipants = [];
             let tempInitialFiles = [];
 
-            // Sample journeys data
+            // Utility for multi-value columns
+            function formatMulti(arr) {
+                if (!arr || arr.length === 0) return 'N/A';
+                if (arr.length === 1) return arr[0];
+                return `<span title="${arr.join(', ')}">Multiple</span>`;
+            }
+
+            // Sample journeys data (U.S. city/state locations)
             let journeys = {
                 "proc-1": {
                     id: "proc-1",
                     name: "Office Renovation Project",
+                    contractors: ["ABC Contractors", "XYZ Subcontractors"],
+                    locations: ["Dallas, TX", "Houston, TX"],
+                    tenants: ["Tenant A"],
                     phaseIndex: 1,
                     ballInCourt: "Contractor",
                     deadline: "2025-04-15",
@@ -747,10 +832,15 @@
                 "proc-2": {
                     id: "proc-2",
                     name: "HVAC Replacement - Building A",
+                    contractors: ["XYZ Renovations"],
+                    locations: ["Phoenix, AZ"],
+                    tenants: [],
                     phaseIndex: 2,
                     ballInCourt: "Owner",
                     deadline: "2025-04-10",
                     status: "Response Received",
+                    owner: "Acme Corp",
+                    action: "Review Bids",
                     participants: [
                         { name: "Michael Brown", role: "Owner" },
                         { name: "XYZ Renovations (John D)", role: "Contractor" }
@@ -776,10 +866,15 @@
                 "proc-3": {
                     id: "proc-3",
                     name: "Parking Lot Resurfacing",
+                    contractors: ["PaveIt Inc"],
+                    locations: ["Chicago, IL"],
+                    tenants: [],
                     phaseIndex: 3,
                     ballInCourt: "Owner",
                     deadline: "2025-04-08",
                     status: "Under Review",
+                    owner: "Acme Corp",
+                    action: "Finalize Decision",
                     participants: [
                         { name: "Michael Brown", role: "Owner" },
                         { name: "PaveIt Inc", role: "Contractor" }
@@ -803,6 +898,9 @@
                 "proc-4": {
                     id: "proc-4",
                     name: "Solar Panel Installation",
+                    contractors: ["Solaris Systems"],
+                    locations: ["Los Angeles, CA"],
+                    tenants: ["HQ Tenant 1", "HQ Tenant 2"],
                     phaseIndex: 4,
                     ballInCourt: "Contractor",
                     deadline: "2025-05-01",
@@ -832,6 +930,9 @@
                 "proc-5": {
                     id: "proc-5",
                     name: "Elevator Maintenance",
+                    contractors: ["Otis Elevators"],
+                    locations: ["Boston, MA", "Newark, NJ"],
+                    tenants: ["Tenant A", "Tenant B", "Tenant C"],
                     phaseIndex: 2,
                     ballInCourt: "Contractor",
                     deadline: "2025-04-12",
@@ -860,11 +961,13 @@
                 }
             };
 
+            // Inserted "Job Walk" after "Review"
             let defaultPhases = [
                 "Initiation/Scope",
                 "RFP Sent",
                 "Response",
                 "Review",
+                "Job Walk",
                 "Awarded (NTP)",
                 "Construction",
                 "Closeout"
@@ -876,8 +979,6 @@
             function addSafeListener(element, event, handler) {
                 if (element) {
                     element.addEventListener(event, handler);
-                } else {
-                    console.warn("Element not found for listener:", element);
                 }
             }
 
@@ -945,7 +1046,7 @@
                 const allJourneys = Object.values(journeys);
                 statActive.textContent = allJourneys.length;
                 statPending.textContent = allJourneys.filter(j => j.ballInCourt === 'Contractor' && j.phaseIndex < 4).length;
-                statAwarded.textContent = allJourneys.filter(j => j.phaseIndex >= 4).length;
+                statAwarded.textContent = allJourneys.filter(j => j.phaseIndex >= 5).length; // "Awarded (NTP)" is index 5
                 statBicOwner.textContent = allJourneys.filter(j => j.ballInCourt === 'Owner').length;
             }
 
@@ -957,8 +1058,12 @@
                     const tr = document.createElement('tr');
                     tr.className = 'procurement-item';
                     tr.dataset.id = j.id;
+
                     tr.innerHTML = `
                         <td>${j.name}</td>
+                        <td>${formatMulti(j.contractors)}</td>
+                        <td>${formatMulti(j.locations)}</td>
+                        <td>${formatMulti(j.tenants)}</td>
                         <td>${currentPhaseList[j.phaseIndex] || 'N/A'}</td>
                         <td><span class="ball-badge ball-${(j.ballInCourt || '').toLowerCase()}">${j.ballInCourt || '?'}</span></td>
                         <td>${j.deadline || 'N/A'}</td>
@@ -1047,7 +1152,13 @@
                     const div = document.createElement('div');
                     div.className = 'document-card';
                     div.innerHTML = `
-                        <div class="document-icon"><i class="fa-solid ${p.role === 'Owner' ? 'fa-user-tie' : (p.role === 'Contractor' ? 'fa-user-hard-hat' : 'fa-user')}"></i></div>
+                        <div class="document-icon">
+                            <i class="fa-solid ${
+                                p.role === 'Owner'
+                                    ? 'fa-user-tie'
+                                    : (p.role === 'Contractor' ? 'fa-user-hard-hat' : 'fa-user')
+                            }"></i>
+                        </div>
                         <div class="document-info">
                             <div class="document-title">${p.name} <span class="participant-role">(${p.role})</span></div>
                         </div>
@@ -1212,7 +1323,6 @@
                     return;
                 }
 
-                console.log("Loading Journey:", journeyData.name, "ID:", activeJourneyId);
                 journeyPhases = journeyData.phases || [...defaultPhases];
 
                 journeyTitleDisplay.textContent = journeyData.name;
@@ -1262,7 +1372,7 @@
                     const li = document.createElement('li');
                     li.className = 'list-group-item';
                     li.innerHTML = `<span>${p.name} <span class="participant-role">(${p.role})</span></span>`;
-                    // Allow removal of participants other than the first "Me (Creator)"
+                    // Allow removal for participants other than the first "Me (Creator)"
                     if (index > 0) {
                         li.innerHTML += `
                             <button class="btn btn-sm btn-outline-danger delete-initial-participant-btn" data-index="${index}">
@@ -1316,6 +1426,9 @@
                     name: newName,
                     type: newType,
                     description: newDesc,
+                    contractors: [],  // empty by default
+                    locations: [],
+                    tenants: [],
                     phaseIndex: 0,
                     ballInCourt: "Owner",
                     deadline: "",
@@ -1583,14 +1696,13 @@
             addSafeListener(toolbeltUploadDocBtn, 'click', handleUploadDocument);
             addSafeListener(uploadDocJourneyBtn, 'click', handleUploadDocument);
 
-            // ADD COMMENT MODAL (replaces simple prompt usage)
+            // ADD COMMENT MODAL
             addSafeListener(toolbeltAddCommentBtn, 'click', () => {
-                // Only allow showing comment modal if there's an active journey
                 if (!activeJourneyId || !journeys[activeJourneyId]) {
                     alert("Please select an active journey first.");
                     return;
                 }
-                commentTextarea.value = ''; // Clear previous text
+                commentTextarea.value = '';
                 showModal(addCommentModal);
             });
 
@@ -1605,7 +1717,6 @@
                 }
 
                 if (!journeyData.log) journeyData.log = [];
-                // Simulate the user as 'Me'
                 journeyData.log.unshift({
                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}),
                     text: `<strong>Me:</strong> ${text}`
@@ -1673,7 +1784,6 @@
             renderContractorDashboard();
             setupAddTaskModal();
             updateUIState(); // Set initial state
-            console.log("POC Initialized (Full Functionality).");
         });
     </script>
 </body>
