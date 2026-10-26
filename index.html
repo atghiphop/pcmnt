@@ -678,6 +678,28 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Template values are text unless they were built by html().
+            class SafeHtml extends String {}
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, character => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                })[character]);
+            }
+
+            function renderHtmlValue(value) {
+                return value instanceof SafeHtml ? String(value) : escapeHtml(value);
+            }
+
+            function html(strings, ...values) {
+                return new SafeHtml(strings.reduce((result, part, index) =>
+                    result + part + (index < values.length ? renderHtmlValue(values[index]) : ''), ''));
+            }
+
+            html.join = (values, separator = '') =>
+                new SafeHtml(values.map(renderHtmlValue).join(escapeHtml(separator)));
+
+
             // --- DOM Elements ---
             const procurementNav = document.getElementById('procurement-nav');
             const dashboardNavItem = document.getElementById('dashboard-nav-item');
@@ -776,7 +798,7 @@
             function formatMulti(arr) {
                 if (!arr || arr.length === 0) return 'N/A';
                 if (arr.length === 1) return arr[0];
-                return `<span title="${arr.join(', ')}">Multiple</span>`;
+                return html`<span title="${arr.join(', ')}">Multiple</span>`;
             }
 
             // Sample journeys data (U.S. city/state locations)
@@ -825,8 +847,8 @@
                     ],
                     log: [
                         { time: "Apr 4, 9:00 AM", text: "Task assigned: Review Design Mockups to Design Firm X" },
-                        { time: "Apr 3, 2:15 PM", text: "<strong>Dave Trebas</strong> sent RFP package to contractors" },
-                        { time: "Apr 1, 11:00 AM", text: "Journey started by <strong>Michael Brown</strong>" }
+                        { time: "Apr 3, 2:15 PM", text: html`<strong>Dave Trebas</strong> sent RFP package to contractors` },
+                        { time: "Apr 1, 11:00 AM", text: html`Journey started by <strong>Michael Brown</strong>` }
                     ]
                 },
                 "proc-2": {
@@ -1059,7 +1081,7 @@
                     tr.className = 'procurement-item';
                     tr.dataset.id = j.id;
 
-                    tr.innerHTML = `
+                    tr.innerHTML = html`
                         <td>${j.name}</td>
                         <td>${formatMulti(j.contractors)}</td>
                         <td>${formatMulti(j.locations)}</td>
@@ -1089,7 +1111,7 @@
                         const tr = document.createElement('tr');
                         tr.className = 'procurement-item';
                         tr.dataset.id = j.id;
-                        tr.innerHTML = `
+                        tr.innerHTML = html`
                             <td>${j.name}</td>
                             <td>${j.owner || 'Unknown Owner'}</td>
                             <td>${j.action || 'View Details'}</td>
@@ -1115,7 +1137,7 @@
                     if (index < activeIndex) phaseDiv.classList.add('completed');
                     if (index === activeIndex) phaseDiv.classList.add('active');
 
-                    phaseDiv.innerHTML = `
+                    phaseDiv.innerHTML = html`
                         <div class="phase-dot"></div>
                         <div class="phase-label">${phaseName}</div>
                     `;
@@ -1128,7 +1150,7 @@
                 (phases || []).forEach((phaseName, index) => {
                     const li = document.createElement('li');
                     li.className = 'list-group-item';
-                    li.innerHTML = `
+                    li.innerHTML = html`
                         <span><i class="fa-solid fa-grip-lines" style="cursor: grab; margin-right: 8px; color: #ccc;"></i> ${phaseName}</span>
                         <button class="btn btn-sm btn-outline-danger delete-phase-btn" data-index="${index}">
                             <i class="fa-solid fa-trash-alt"></i>
@@ -1151,7 +1173,7 @@
                 (participants || []).forEach(p => {
                     const div = document.createElement('div');
                     div.className = 'document-card';
-                    div.innerHTML = `
+                    div.innerHTML = html`
                         <div class="document-icon">
                             <i class="fa-solid ${
                                 p.role === 'Owner'
@@ -1167,7 +1189,7 @@
                 });
 
                 if (!participants || participants.length === 0) {
-                    participantsListDisplay.innerHTML = `<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No participants added yet.</div>`;
+                    participantsListDisplay.innerHTML = html`<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No participants added yet.</div>`;
                 }
             }
 
@@ -1176,7 +1198,7 @@
                 (participants || []).forEach((p, index) => {
                     const li = document.createElement('li');
                     li.className = 'list-group-item';
-                    li.innerHTML = `
+                    li.innerHTML = html`
                         <span>${p.name} <span class="participant-role">(${p.role})</span></span>
                         <button class="btn btn-sm btn-outline-danger delete-participant-btn" data-index="${index}">
                             <i class="fa-solid fa-trash-alt"></i>
@@ -1199,13 +1221,13 @@
             }
 
             function renderTasks(tasks) {
-                taskListContainer.innerHTML = `<div class="task-list-header">Active Tasks / Checklists</div>`;
+                taskListContainer.innerHTML = html`<div class="task-list-header">Active Tasks / Checklists</div>`;
                 (tasks || []).forEach((task, index) => {
                     const div = document.createElement('div');
                     div.className = 'task-item-container';
 
                     if (task.type === 'checklist') {
-                        div.innerHTML = `
+                        div.innerHTML = html`
                             <div class="task-header">
                                 <span class="task-title">
                                     <i class="fa-solid fa-list-check" style="margin-right: 5px; color: #6c757d;"></i>
@@ -1215,18 +1237,18 @@
                             </div>
                             <ul class="checklist-items-display">
                                 ${
-                                    (task.items || [])
-                                    .map((item, itemIndex) => `
+                                    html.join((task.items || [])
+                                    .map((item, itemIndex) => html`
                                         <li>
                                             <span class="custom-checkbox ${item.completed ? 'checked' : ''}" data-task-index="${index}" data-item-index="${itemIndex}"></span>
                                             <span>${item.text}</span>
                                         </li>
-                                    `).join('')
+                                    `), '')
                                 }
                             </ul>
                         `;
                     } else {
-                        div.innerHTML = `
+                        div.innerHTML = html`
                             <div style="display: flex; align-items: flex-start;">
                                 <span class="custom-checkbox ${task.completed ? 'checked' : ''}" data-task-index="${index}" style="margin-top: 2px;"></span>
                                 <div style="flex: 1; margin-left: 5px;">
@@ -1241,7 +1263,7 @@
                 });
 
                 if (!tasks || tasks.length === 0) {
-                    taskListContainer.innerHTML += `<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No active tasks or checklists.</div>`;
+                    taskListContainer.innerHTML += html`<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No active tasks or checklists.</div>`;
                 }
             }
 
@@ -1250,7 +1272,7 @@
                 (docs || []).forEach(doc => {
                     const div = document.createElement('div');
                     div.className = 'document-card';
-                    div.innerHTML = `
+                    div.innerHTML = html`
                         <div class="document-icon"><i class="fa-solid ${doc.icon || 'fa-file'}"></i></div>
                         <div class="document-info">
                             <div class="document-title">${doc.title}</div>
@@ -1265,7 +1287,7 @@
                 });
 
                 if (!docs || docs.length === 0) {
-                    documentsListDisplay.innerHTML = `<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No documents uploaded yet.</div>`;
+                    documentsListDisplay.innerHTML = html`<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No documents uploaded yet.</div>`;
                 }
             }
 
@@ -1274,7 +1296,7 @@
                 (log || []).forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'timeline-item';
-                    div.innerHTML = `
+                    div.innerHTML = html`
                         <div class="timeline-dot"></div>
                         <div class="timeline-content">
                             <div class="timeline-time">${item.time}</div>
@@ -1285,14 +1307,14 @@
                 });
 
                 if (!log || log.length === 0) {
-                    activityLogDisplay.innerHTML = `<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No activity logged yet.</div>`;
+                    activityLogDisplay.innerHTML = html`<div style="padding: 15px; text-align: center; color: #888; font-size: 13px;">No activity logged yet.</div>`;
                 }
             }
 
             function renderToolbeltComments(log) {
                 tbCommentsList.innerHTML = '';
                 if (!log || log.length === 0) {
-                    tbCommentsList.innerHTML = `<p style="font-size: 13px; color: #888;">No comments/activity yet.</p>`;
+                    tbCommentsList.innerHTML = html`<p style="font-size: 13px; color: #888;">No comments/activity yet.</p>`;
                     return;
                 }
 
@@ -1300,11 +1322,14 @@
                 log.slice(0, 5).forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'toolbelt-comment';
-                    const nameMatch = item.text.match(/<strong>(.*?)<\/strong>/);
-                    const name = nameMatch ? nameMatch[1] : "System";
-                    const textOnly = item.text.replace(/<strong>.*?<\/strong>\s*/, '');
+                    const message = document.createElement('template');
+                    message.innerHTML = renderHtmlValue(item.text);
+                    const author = message.content.querySelector('strong');
+                    const name = author?.textContent || "System";
+                    author?.remove();
+                    const textOnly = message.content.textContent.trimStart();
 
-                    div.innerHTML = `
+                    div.innerHTML = html`
                         <div class="toolbelt-comment-meta">${name}</div>
                         <div class="toolbelt-comment-time">${item.time}</div>
                         <div class="toolbelt-comment-text">${textOnly}</div>
@@ -1371,10 +1396,10 @@
                 tempInitialParticipants.forEach((p, index) => {
                     const li = document.createElement('li');
                     li.className = 'list-group-item';
-                    li.innerHTML = `<span>${p.name} <span class="participant-role">(${p.role})</span></span>`;
+                    li.innerHTML = html`<span>${p.name} <span class="participant-role">(${p.role})</span></span>`;
                     // Allow removal for participants other than the first "Me (Creator)"
                     if (index > 0) {
-                        li.innerHTML += `
+                        li.innerHTML += html`
                             <button class="btn btn-sm btn-outline-danger delete-initial-participant-btn" data-index="${index}">
                                 <i class="fa-solid fa-trash-alt"></i>
                             </button>
@@ -1489,7 +1514,7 @@
                     journeyData.status = currentPhaseList[journeyData.phaseIndex];
                     journeyData.log.unshift({
                         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}),
-                        text: `Advanced to phase: <strong>${currentPhaseList[journeyData.phaseIndex]}</strong>`
+                        text: html`Advanced to phase: <strong>${currentPhaseList[journeyData.phaseIndex]}</strong>`
                     });
 
                     renderJourneyPhases(currentPhaseList, journeyData.phaseIndex);
@@ -1544,7 +1569,7 @@
                 addSafeListener(addChecklistItemModalBtn, 'click', () => {
                     const newItemDiv = document.createElement('div');
                     newItemDiv.className = 'checklist-item-input-group';
-                    newItemDiv.innerHTML = `
+                    newItemDiv.innerHTML = html`
                         <input type="text" class="form-control form-control-sm checklist-item-input" placeholder="Checklist item ${checklistItemsContainer.children.length + 1}">
                         <button class="btn btn-sm btn-outline-danger remove-checklist-item-btn" type="button">
                             <i class="fa-solid fa-trash-alt"></i>
@@ -1580,7 +1605,7 @@
 
                 taskDescriptionInput.value = '';
                 checklistTitleInput.value = '';
-                checklistItemsContainer.innerHTML = `
+                checklistItemsContainer.innerHTML = html`
                     <div class="checklist-item-input-group">
                         <input type="text" class="form-control form-control-sm checklist-item-input" placeholder="Checklist item 1">
                         <button class="btn btn-sm btn-outline-danger remove-checklist-item-btn" type="button" disabled>
@@ -1719,7 +1744,7 @@
                 if (!journeyData.log) journeyData.log = [];
                 journeyData.log.unshift({
                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}),
-                    text: `<strong>Me:</strong> ${text}`
+                    text: html`<strong>Me:</strong> ${text}`
                 });
 
                 renderActivityLog(journeyData.log);
